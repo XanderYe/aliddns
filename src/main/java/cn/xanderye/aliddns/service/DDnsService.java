@@ -32,6 +32,8 @@ public class DDnsService {
     private static String rr;
     private static String domainName;
 
+    private static IAcsClient client;
+
     static {
         PropertyUtil.init();
         regionId = PropertyUtil.get("aliyun.region-id");
@@ -39,6 +41,8 @@ public class DDnsService {
         accessSecret = PropertyUtil.get("aliyun.access-secret");
         rr = PropertyUtil.get("aliyun.rr");
         domainName = PropertyUtil.get("aliyun.domainName");
+        DefaultProfile profile = DefaultProfile.getProfile(regionId, accessKeyId, accessSecret);
+        client = new DefaultAcsClient(profile);
     }
 
     private static DescribeDomainRecordsResponse.Record cacheRecord = null;
@@ -115,8 +119,6 @@ public class DDnsService {
      * @date 2020/7/9
      */
     public List<DescribeDomainRecordsResponse.Record> getDescribeDomainRecords(String domainName) {
-        DefaultProfile profile = DefaultProfile.getProfile(regionId, accessKeyId, accessSecret);
-        IAcsClient client = new DefaultAcsClient(profile);
         DescribeDomainRecordsRequest request = new DescribeDomainRecordsRequest();
         request.setSysRegionId(regionId);
         request.setDomainName(domainName);
@@ -144,8 +146,6 @@ public class DDnsService {
      * @date 2020/7/9
      */
     public boolean updateDomainRecord(DescribeDomainRecordsResponse.Record record) {
-        DefaultProfile profile = DefaultProfile.getProfile(regionId, accessKeyId, accessSecret);
-        IAcsClient client = new DefaultAcsClient(profile);
         UpdateDomainRecordRequest request = new UpdateDomainRecordRequest();
         request.setSysRegionId(regionId);
         request.setRecordId(record.getRecordId());
