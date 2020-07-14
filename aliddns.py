@@ -22,8 +22,6 @@ accessSecret = ""
 domainName = ""
 # 主机记录
 rr = ""
-# 间隔(分钟)
-period = 5
 
 client = AcsClient(accessKeyId, accessSecret, regionId)
 
