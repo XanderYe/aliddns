@@ -97,29 +97,27 @@ const getMyIp = () => {
     })
 }
 
-const main = () => {
-    getMyIp().then(ip => {
-        console.log("获取到公网ip为：" + ip)
-        getDescribeDomainRecords(domainName).then(record => {
-            if (record) {
-                if (record.Value !== ip) {
-                    console.log("记录值变动，开始更新");
-                    record.Type = "A";
-                    record.Value = ip;
-                    updateDomainRecord(record).then(() => {
-                        console.log("主机记录为" + rr + "的记录值更新为" + ip);
-                    }).catch((err) => {
-                        console.log(err);
-                        console.log("更新失败");
-                    })
-                } else {
-                    console.log("记录值未变动，不更新");
-                }
-            } else {
-                console.log("未获取到匹配的记录");
-            }
-        });
-    })
+ const main = async () => {
+    let ip = await getMyIp();
+    console.log("获取到公网ip为：" + ip);
+    let record = await getDescribeDomainRecords(domainName);
+     if (record) {
+         if (record.Value !== ip) {
+             console.log("记录值变动，开始更新");
+             record.Type = "A";
+             record.Value = ip;
+             updateDomainRecord(record).then(() => {
+                 console.log("主机记录为" + rr + "的记录值更新为" + ip);
+             }).catch((err) => {
+                 console.log(err);
+                 console.log("更新失败");
+             })
+         } else {
+             console.log("记录值未变动，不更新");
+         }
+     } else {
+         console.log("未获取到匹配的记录");
+     }
 }
 
 main();
