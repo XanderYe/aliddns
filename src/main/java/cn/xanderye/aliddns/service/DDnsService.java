@@ -48,18 +48,25 @@ public class DDnsService {
     private static DescribeDomainRecordsResponse.Record cacheRecord = null;
 
     public void ddns() {
+        String ip = getIp();
+        changeRecord(ip);
+    }
+
+    public String getIp() {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("Origin", "http://ip.taobao.com");
+        headers.put("Referer", "http://ip.taobao.com/");
         Map<String, Object> params = new HashMap<>();
         params.put("ip", "myip");
         params.put("accessKey", "alibaba-inc");
         try {
-            String result = HttpUtil.doPost("http://ip.taobao.com/outGetIpInfo", params);
+            String result = HttpUtil.doPost("http://ip.taobao.com/outGetIpInfo", headers, null, params);
 
-            String ip = substringBetween(result, "queryIp\":\"", "\",");
-            log.info("获取到公网ip为：" + ip);
-            changeRecord(ip);
+            return substringBetween(result, "queryIp\":\"", "\",");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     /**
@@ -84,7 +91,6 @@ public class DDnsService {
             if (recordList != null && !recordList.isEmpty()) {
                 for (DescribeDomainRecordsResponse.Record record : recordList) {
                     if (rr.equals(record.getRR())) {
-                        log.info("匹配到记录：" + recordToString(record));
                         cacheRecord = record;
                         break;
                     }
@@ -99,11 +105,7 @@ public class DDnsService {
                 boolean bool = updateDomainRecord(cacheRecord);
                 if (bool) {
                     log.info("主机记录为" + rr + "的记录值更新为：" + value);
-                } else {
-                    log.error("更新失败");
                 }
-            } else {
-                log.info("记录值未变动，不更新");
             }
         } else {
             log.error("未获取到记录");
