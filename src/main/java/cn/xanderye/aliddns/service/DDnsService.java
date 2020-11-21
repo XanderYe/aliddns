@@ -2,6 +2,8 @@ package cn.xanderye.aliddns.service;
 
 import cn.xanderye.aliddns.util.HttpUtil;
 import cn.xanderye.aliddns.util.PropertyUtil;
+import cn.xanderye.aliddns.util.StringUtil;
+import cn.xanderye.aliddns.util.SystemUtil;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.alidns.model.v20150109.DescribeDomainRecordsRequest;
@@ -36,11 +38,15 @@ public class DDnsService {
 
     static {
         PropertyUtil.init();
-        regionId = PropertyUtil.get("aliyun.region-id");
-        accessKeyId = PropertyUtil.get("aliyun.access-key-id");
-        accessSecret = PropertyUtil.get("aliyun.access-secret");
-        rr = PropertyUtil.get("aliyun.rr");
-        domainName = PropertyUtil.get("aliyun.domainName");
+        regionId = SystemUtil.getOrDefault("REGIN_ID", PropertyUtil.get("aliyun.region-id"));
+        accessKeyId = SystemUtil.getOrDefault("ACCESS_KEY_ID", PropertyUtil.get("aliyun.access-key-id"));
+        accessSecret = SystemUtil.getOrDefault("ACCESS_SECRET", PropertyUtil.get("aliyun.access-secret"));
+        rr = SystemUtil.getOrDefault("RR", PropertyUtil.get("aliyun.rr"));
+        domainName = SystemUtil.getOrDefault("DOMAIN_NAME", PropertyUtil.get("aliyun.domainName"));
+        if (StringUtil.isAnyEmpty(regionId, accessKeyId, accessSecret, rr, domainName)) {
+            log.error("请先配置参数");
+            System.exit(-1);
+        }
         DefaultProfile profile = DefaultProfile.getProfile(regionId, accessKeyId, accessSecret);
         client = new DefaultAcsClient(profile);
     }
@@ -62,7 +68,7 @@ public class DDnsService {
         try {
             String result = HttpUtil.doPost("http://ip.taobao.com/outGetIpInfo", headers, null, params);
 
-            return substringBetween(result, "queryIp\":\"", "\",");
+            return StringUtil.substringBetween(result, "queryIp\":\"", "\",");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -173,21 +179,6 @@ public class DDnsService {
                 + "，记录类型=" + record.getType() + "，域名名称=" + record.getDomainName()
                 + "，记录值=" + record.getValue() + "，解析记录ID=" + record.getRecordId()
                 + "，生存时间=" + record.getTTL() + "，负载均衡权重=" + record.getWeight();
-    }
-
-    public static String substringBetween(String str, String open, String close) {
-        if (str != null && open != null && close != null) {
-            int start = str.indexOf(open);
-            if (start != -1) {
-                int end = str.indexOf(close, start + open.length());
-                if (end != -1) {
-                    return str.substring(start + open.length(), end);
-                }
-            }
-            return null;
-        } else {
-            return null;
-        }
     }
 
 }
