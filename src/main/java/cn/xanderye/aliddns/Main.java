@@ -2,6 +2,7 @@ package cn.xanderye.aliddns;
 
 import cn.xanderye.aliddns.service.DDnsService;
 import cn.xanderye.aliddns.util.PropertyUtil;
+import cn.xanderye.aliddns.util.SystemUtil;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -17,7 +18,7 @@ public class Main {
         DDnsService dDnsService = new DDnsService();
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         int period = 5;
-        String s = PropertyUtil.get("schedule.period");
+        String s = SystemUtil.getOrDefault("PERIOD", PropertyUtil.get("schedule.period"));
         if (s != null && Integer.parseInt(s) > 0) {
             period = Integer.parseInt(s);
         }

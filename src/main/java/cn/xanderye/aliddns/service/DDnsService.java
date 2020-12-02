@@ -16,9 +16,8 @@ import com.aliyuncs.profile.DefaultProfile;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created on 2020/7/9.
@@ -31,7 +30,7 @@ public class DDnsService {
     private static String regionId;
     private static String accessKeyId;
     private static String accessSecret;
-    private static String rr;
+    private static List<String> rrList;
     private static String domainName;
 
     private static IAcsClient client;
@@ -41,17 +40,18 @@ public class DDnsService {
         regionId = SystemUtil.getOrDefault("REGIN_ID", PropertyUtil.get("aliyun.region-id"));
         accessKeyId = SystemUtil.getOrDefault("ACCESS_KEY_ID", PropertyUtil.get("aliyun.access-key-id"));
         accessSecret = SystemUtil.getOrDefault("ACCESS_SECRET", PropertyUtil.get("aliyun.access-secret"));
-        rr = SystemUtil.getOrDefault("RR", PropertyUtil.get("aliyun.rr"));
+        String rrs = SystemUtil.getOrDefault("RR", PropertyUtil.get("aliyun.rr"));
         domainName = SystemUtil.getOrDefault("DOMAIN_NAME", PropertyUtil.get("aliyun.domainName"));
-        if (StringUtil.isAnyEmpty(regionId, accessKeyId, accessSecret, rr, domainName)) {
+        if (StringUtil.isAnyEmpty(regionId, accessKeyId, accessSecret, rrs, domainName)) {
             log.error("请先配置参数");
             System.exit(-1);
         }
+        rrList = Arrays.asList(rrs.split(","));
         DefaultProfile profile = DefaultProfile.getProfile(regionId, accessKeyId, accessSecret);
         client = new DefaultAcsClient(profile);
     }
 
-    private static DescribeDomainRecordsResponse.Record cacheRecord = null;
+    private static List<DescribeDomainRecordsResponse.Record> cacheRecordList = new ArrayList<>();
 
     public void ddns() {
         String ip = getIp();
@@ -67,7 +67,6 @@ public class DDnsService {
         params.put("accessKey", "alibaba-inc");
         try {
             String result = HttpUtil.doPost("http://ip.taobao.com/outGetIpInfo", headers, null, params);
-
             return StringUtil.substringBetween(result, "queryIp\":\"", "\",");
         } catch (IOException e) {
             e.printStackTrace();
@@ -83,34 +82,25 @@ public class DDnsService {
      * @date 2020/7/9
      */
     public void changeRecord(String value) {
-        if (domainName == null || "".equals(domainName)) {
-            log.error("请配置域名");
-            return;
-        }
-        if (rr == null || "".equals(rr)) {
-            log.error("请配置主机记录");
-            return;
-        }
-        if (cacheRecord == null) {
+        if (cacheRecordList.isEmpty()) {
             log.info("拉取解析记录");
             List<DescribeDomainRecordsResponse.Record> recordList = getDescribeDomainRecords(domainName);
             if (recordList != null && !recordList.isEmpty()) {
-                for (DescribeDomainRecordsResponse.Record record : recordList) {
-                    if (rr.equals(record.getRR())) {
-                        cacheRecord = record;
-                        break;
-                    }
-                }
+                cacheRecordList = recordList.parallelStream()
+                        .filter(record -> rrList.contains(record.getRR()))
+                        .collect(Collectors.toList());
             }
         }
-        if (cacheRecord != null) {
-            if (!cacheRecord.getValue().equals(value)) {
+        if (!cacheRecordList.isEmpty()) {
+            if (!cacheRecordList.get(0).getValue().equals(value)) {
                 log.info("记录值变动，开始更新");
-                cacheRecord.setType("A");
-                cacheRecord.setValue(value);
-                boolean bool = updateDomainRecord(cacheRecord);
-                if (bool) {
-                    log.info("主机记录为" + rr + "的记录值更新为：" + value);
+                for (DescribeDomainRecordsResponse.Record cacheRecord : cacheRecordList) {
+                    cacheRecord.setType("A");
+                    cacheRecord.setValue(value);
+                    boolean bool = updateDomainRecord(cacheRecord);
+                    if (bool) {
+                        log.info("主机记录为" + cacheRecord.getRR() + "的记录值更新为：" + value);
+                    }
                 }
             }
         } else {
