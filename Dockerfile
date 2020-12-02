@@ -1,6 +1,5 @@
 # build
 FROM maven:3.6.3-adoptopenjdk-8 as BUILDER
-LABEL maintainer="XanderYe <XanderYe@outlook.com>"
 
 RUN apt-get update && \
 	apt-get install -y git && \
@@ -16,6 +15,8 @@ WORKDIR /app/aliddns
 RUN mvn -Dmaven.test.skip clean install assembly:single
 # run
 FROM fabletang/jre8-alpine:181
+
+MAINTAINER XanderYe <XanderYe@outlook.com>
 
 WORKDIR /app
 COPY --from=BUILDER /app/aliddns/target/aliddns-jar-with-dependencies.jar ./aliddns.jar
