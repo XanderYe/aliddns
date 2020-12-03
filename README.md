@@ -13,7 +13,8 @@
 
 ## 创建容器
 执行
-`docker run -itd \
+```
+docker run -itd \
 -e PERIOD=5 \
 -e REGIN_ID=cn-hangzhou \
 -e ACCESS_KEY_ID= \
@@ -22,7 +23,8 @@
 -e DOMAIN_NAME=xanderye.cn \
 --restart=always \
 --name aliddns \
-xanderye/aliddns:1.1`
+xanderye/aliddns:1.1
+```
 
 ### 注意事项
 1. 参数需要自己填好、修改好, [如何获取AccessKey](https://help.aliyun.com/knowledge_detail/48699.html)
