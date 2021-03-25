@@ -1,5 +1,7 @@
 package cn.xanderye.aliddns.service;
 
+import cn.xanderye.aliddns.ipAddress.IpAddressRepo;
+import cn.xanderye.aliddns.ipAddress.TaobaoIpAddress;
 import cn.xanderye.aliddns.util.HttpUtil;
 import cn.xanderye.aliddns.util.PropertyUtil;
 import cn.xanderye.aliddns.util.StringUtil;
@@ -54,24 +56,13 @@ public class DDnsService {
     private static List<DescribeDomainRecordsResponse.Record> cacheRecordList = new ArrayList<>();
 
     public void ddns() {
-        String ip = getIp();
-        changeRecord(ip);
+        IpAddressRepo ipAddress = new TaobaoIpAddress();
+        ddns(ipAddress);
     }
 
-    public String getIp() {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("Origin", "http://ip.taobao.com");
-        headers.put("Referer", "http://ip.taobao.com/");
-        Map<String, Object> params = new HashMap<>();
-        params.put("ip", "myip");
-        params.put("accessKey", "alibaba-inc");
-        try {
-            String result = HttpUtil.doPost("http://ip.taobao.com/outGetIpInfo", headers, null, params);
-            return StringUtil.substringBetween(result, "queryIp\":\"", "\",");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public void ddns(IpAddressRepo ipAddress) {
+        String ip = ipAddress.getIp();
+        changeRecord(ip);
     }
 
     /**
