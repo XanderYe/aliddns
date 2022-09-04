@@ -23,6 +23,7 @@ docker run -itd \
 -e DOMAIN_NAME=xanderye.cn \
 -e TYPE=ipv6 \
 --restart=always \
+–-net=“host” \
 --name aliddns \
 xanderye/aliddns:1.3
 ```
@@ -33,6 +34,7 @@ services:
   aliddns:
     image: xanderye/aliddns:1.3
     container_name: aliddns
+    network_mode: host
     environment:
       - PERIOD=5
       - REGIN_ID=cn-hangzhou
