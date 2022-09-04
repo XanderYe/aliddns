@@ -12,7 +12,7 @@ import java.util.Map;
  * @description:
  * @date 2021/3/25 10:27
  */
-public class TaobaoIpAddress extends IpAddressRepo {
+public class TaobaoIpAddress extends Ipv4AddressRepo {
     @Override
     public String getIp() {
         Map<String, Object> headers = new HashMap<>();

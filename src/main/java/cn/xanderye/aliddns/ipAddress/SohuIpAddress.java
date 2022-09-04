@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * @description:
  * @date 2021/3/25 10:27
  */
-public class SohuIpAddress extends IpAddressRepo {
+public class SohuIpAddress extends Ipv4AddressRepo {
     private static final Pattern IP_PATTERN = Pattern.compile("\"cip\": \"([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)\",");
 
     @Override

@@ -2,19 +2,19 @@ package cn.xanderye.aliddns.service;
 
 import cn.xanderye.aliddns.ipAddress.IpAddressRepo;
 import cn.xanderye.aliddns.ipAddress.TaobaoIpAddress;
+import cn.xanderye.aliddns.model.IpType;
 import cn.xanderye.aliddns.util.HttpUtil;
 import cn.xanderye.aliddns.util.PropertyUtil;
 import cn.xanderye.aliddns.util.StringUtil;
 import cn.xanderye.aliddns.util.SystemUtil;
+import com.alibaba.fastjson2.JSONObject;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
-import com.aliyuncs.alidns.model.v20150109.DescribeDomainRecordsRequest;
-import com.aliyuncs.alidns.model.v20150109.DescribeDomainRecordsResponse;
-import com.aliyuncs.alidns.model.v20150109.UpdateDomainRecordRequest;
-import com.aliyuncs.alidns.model.v20150109.UpdateDomainRecordResponse;
+import com.aliyuncs.alidns.model.v20150109.*;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.exceptions.ServerException;
 import com.aliyuncs.profile.DefaultProfile;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -34,6 +34,7 @@ public class DDnsService {
     private static String accessSecret;
     private static List<String> rrList;
     private static String domainName;
+    private static String type;
 
     private static IAcsClient client;
 
@@ -44,7 +45,8 @@ public class DDnsService {
         accessSecret = SystemUtil.getOrDefault("ACCESS_SECRET", PropertyUtil.get("aliyun.access-secret"));
         String rrs = SystemUtil.getOrDefault("RR", PropertyUtil.get("aliyun.rr"));
         domainName = SystemUtil.getOrDefault("DOMAIN_NAME", PropertyUtil.get("aliyun.domainName"));
-        if (StringUtil.isAnyEmpty(regionId, accessKeyId, accessSecret, rrs, domainName)) {
+        type = IpType.IPV4.getType().equals(SystemUtil.getOrDefault("TYPE", PropertyUtil.get("aliyun.type"))) ? "A" : "AAAA";
+        if (StringUtil.isAnyEmpty(regionId, accessKeyId, accessSecret, rrs, domainName,type)) {
             log.error("请先配置参数");
             System.exit(-1);
         }
@@ -62,6 +64,7 @@ public class DDnsService {
 
     public void ddns(IpAddressRepo ipAddress) {
         String ip = ipAddress.getIp();
+        log.info("当前本机Ip为:{}",ip);
         changeRecord(ip);
     }
 
@@ -82,20 +85,25 @@ public class DDnsService {
                         .collect(Collectors.toList());
             }
         }
+        log.info("需要更新的解析记录:{}",JSONObject.toJSONString(cacheRecordList));
+        if (cacheRecordList.isEmpty()){
+            log.info("未查询要解析的记录,所以新增解析!");
+            addDescribeDomainRecords(value);
+        }
         if (!cacheRecordList.isEmpty()) {
-            if (!cacheRecordList.get(0).getValue().equals(value)) {
+            for (DescribeDomainRecordsResponse.Record cacheRecord : cacheRecordList) {
+                if (cacheRecord.getValue().equals(value)) {
+                    log.info("当前RR:[{}],的IP:[{}]无变动,所以不更新!",cacheRecord.getRR(),cacheRecord.getValue());
+                    continue;
+                }
                 log.info("记录值变动，开始更新");
-                for (DescribeDomainRecordsResponse.Record cacheRecord : cacheRecordList) {
-                    cacheRecord.setType("A");
-                    cacheRecord.setValue(value);
-                    boolean bool = updateDomainRecord(cacheRecord);
-                    if (bool) {
-                        log.info("主机记录为" + cacheRecord.getRR() + "的记录值更新为：" + value);
-                    }
+                cacheRecord.setType(type);
+                cacheRecord.setValue(value);
+                boolean bool = updateDomainRecord(cacheRecord);
+                if (bool) {
+                    log.info("主机记录为" + cacheRecord.getRR() + "的记录值更新为：" + value);
                 }
             }
-        } else {
-            log.error("未获取到记录");
         }
     }
 
@@ -124,6 +132,31 @@ public class DDnsService {
             log.error("RequestId:" + e.getRequestId());
         }
         return null;
+    }
+
+    /**
+     * 添加记录
+     * @return
+     */
+    public void addDescribeDomainRecords(String value) {
+        for (String s : rrList) {
+            AddDomainRecordRequest request = new AddDomainRecordRequest();
+            request.setSysRegionId(regionId);
+            request.setDomainName(domainName);
+            request.setRR(s);
+            request.setType(type);
+            request.setValue(value);
+            try {
+                client.getAcsResponse(request);
+                log.info("添加解析成功,解析参数:{}", JSONObject.toJSONString(request));
+            } catch (ServerException e) {
+                e.printStackTrace();
+            } catch (ClientException e) {
+                log.error("ErrCode:" + e.getErrCode());
+                log.error("ErrMsg:" + e.getErrMsg());
+                log.error("RequestId:" + e.getRequestId());
+            }
+        }
     }
 
     /**

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cn.xanderye</groupId>
     <artifactId>aliddns</artifactId>
-    <version>1.2</version>
+    <version>1.3</version>
     <name>aliddns</name>
     <packaging>jar</packaging>
 
@@ -49,6 +49,11 @@
             <groupId>com.aliyun</groupId>
             <artifactId>aliyun-java-sdk-alidns</artifactId>
             <version>2.0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>2.0.12</version>
         </dependency>
     </dependencies>
 

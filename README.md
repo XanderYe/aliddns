@@ -6,10 +6,10 @@
 ## 获取镜像
 
 ### 1.自己编译
-执行 `docker build -t xanderye/aliddns:1.1 .`
+执行 `docker build -t xanderye/aliddns:1.3 .`
 
 ### 2.从dockerhub pull
-2.执行 `docker pull xanderye/aliddns:1.1`
+2.执行 `docker pull xanderye/aliddns:1.3`
 
 ## 创建容器
 执行
@@ -21,9 +21,27 @@ docker run -itd \
 -e ACCESS_SECRET= \
 -e RR=test \
 -e DOMAIN_NAME=xanderye.cn \
+-e TYPE=ipv6 \
 --restart=always \
 --name aliddns \
-xanderye/aliddns:1.1
+xanderye/aliddns:1.3
+```
+### docker-compose
+```yaml
+version: "3.9"
+services:
+  aliddns:
+    image: xanderye/aliddns:1.3
+    container_name: aliddns
+    environment:
+      - PERIOD=5
+      - REGIN_ID=cn-hangzhou
+      - ACCESS_KEY_ID=
+      - ACCESS_SECRET=
+      - RR=
+      - DOMAIN_NAME=
+      - TYPE=ipv6 #可选ipv4或ipv6,不添加则默认为ipv6
+    restart: unless-stopped
 ```
 
 ### 注意事项
