@@ -17,6 +17,6 @@ FROM fabletang/jre8-alpine:181
 MAINTAINER XanderYe <XanderYe@outlook.com>
 
 WORKDIR /app
-COPY --from=BUILDER /app/aliddns/target/aliddns-jar-with-dependencies.jar ./aliddns.jar
+COPY --from=BUILDER /app/target/aliddns-jar-with-dependencies.jar ./aliddns.jar
 
 ENTRYPOINT ["java", "-jar", "/app/aliddns.jar"]
