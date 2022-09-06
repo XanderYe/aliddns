@@ -65,6 +65,10 @@ public class DDnsService {
     public void ddns(IpAddressRepo ipAddress) {
         String ip = ipAddress.getIp();
         log.info("当前本机Ip为:{}",ip);
+        if (StringUtil.isEmpty(ip)){
+            log.warn("未获取到IP,暂不变更IP!");
+            return;
+        }
         changeRecord(ip);
     }
 

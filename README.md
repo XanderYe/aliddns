@@ -8,6 +8,9 @@
 ### 1.自己编译
 执行 `docker build -t xanderye/aliddns:1.3 .`
 
+#### 1.1 自己根据本地代码文件编译
+执行 `docker build -f Dockerfile-local -t xanderye/aliddns:1.3 .`
+
 ### 2.从dockerhub pull
 2.执行 `docker pull xanderye/aliddns:1.3`
 

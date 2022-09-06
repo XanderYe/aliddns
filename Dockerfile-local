@@ -1,0 +1,22 @@
+# build
+FROM maven:3.6.3-adoptopenjdk-8 as BUILDER
+
+RUN sed -i '/<mirrors>/a<mirror><id>nexus-aliyun</id><mirrorOf>*</mirrorOf><name>Nexus aliyun</name><url>http://maven.aliyun.com/nexus/content/groups/public</url></mirror>' /usr/share/maven/conf/settings.xml
+
+WORKDIR /app
+
+#RUN git clone https://github.com/XanderYe/aliddns.git
+ADD ./pom.xml pom.xml
+ADD ./src src
+ADD ./config.properties config.properties
+
+RUN mvn -Dmaven.test.skip clean install assembly:single
+# run
+FROM fabletang/jre8-alpine:181
+
+MAINTAINER XanderYe <XanderYe@outlook.com>
+
+WORKDIR /app
+COPY --from=BUILDER /app/aliddns/target/aliddns-jar-with-dependencies.jar ./aliddns.jar
+
+ENTRYPOINT ["java", "-jar", "/app/aliddns.jar"]
