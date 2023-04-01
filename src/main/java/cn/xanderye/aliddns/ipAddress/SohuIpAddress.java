@@ -4,7 +4,9 @@ import cn.xanderye.aliddns.util.HttpUtil;
 import cn.xanderye.aliddns.util.StringUtil;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,16 +19,19 @@ import java.util.regex.Pattern;
 public class SohuIpAddress extends Ipv4AddressRepo {
     private static final Pattern IP_PATTERN = Pattern.compile("\"cip\": \"([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)\",");
 
+    private static final List<String> getIPList = Arrays.asList("http://ipv4.ident.me","http://ipv4.icanhazip.com","http://nsupdate.info/myip","http://whatismyip.akamai.com","http://ipv4.myip.dk/api/info/IPv4Address", "http://checkip4.spdyn.de");
+
     @Override
     public String getIp() {
-        try {
-            String result = HttpUtil.doGet("http://pv.sohu.com/cityjson?ie=utf-8", null);
-            Matcher matcher = IP_PATTERN.matcher(result);
-            if (matcher.find()) {
-                return matcher.group(1);
+        for (String url : getIPList) {
+            try {
+                String result = HttpUtil.doGet(url, null);
+                if (!StringUtil.isEmpty(result) && !"127.0.0.1".equals(result)){
+                    return result;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         return null;
     }
