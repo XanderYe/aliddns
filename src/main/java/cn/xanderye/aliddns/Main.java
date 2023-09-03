@@ -1,10 +1,7 @@
 package cn.xanderye.aliddns;
 
-import cn.xanderye.aliddns.ipAddress.IpAddressRepo;
-import cn.xanderye.aliddns.ipAddress.Ipv6Address;
-import cn.xanderye.aliddns.ipAddress.Ipv6Idnet;
-import cn.xanderye.aliddns.ipAddress.SohuIpAddress;
-import cn.xanderye.aliddns.model.IpType;
+import cn.xanderye.aliddns.ipAddress.Ipv4AddressRepo;
+import cn.xanderye.aliddns.ipAddress.Ipv6AddressRepo;
 import cn.xanderye.aliddns.service.DDnsService;
 import cn.xanderye.aliddns.util.PropertyUtil;
 import cn.xanderye.aliddns.util.SystemUtil;
@@ -22,13 +19,13 @@ public class Main {
     public static void main(String[] args) {
         String type = SystemUtil.getOrDefault("TYPE", PropertyUtil.get("aliyun.type"));
         DDnsService dDnsService = new DDnsService();
-        IpAddressRepo ipAddress = IpType.IPV4.getType().equals(type) ? new SohuIpAddress() : new Ipv6Idnet();
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
         int period = 5;
         String s = SystemUtil.getOrDefault("PERIOD", PropertyUtil.get("schedule.period"));
         if (s != null && Integer.parseInt(s) > 0) {
             period = Integer.parseInt(s);
         }
-        executorService.scheduleAtFixedRate(() -> dDnsService.ddns(ipAddress), 0, period, TimeUnit.MINUTES);
+        executorService.scheduleAtFixedRate(() -> dDnsService.ddns(new Ipv4AddressRepo()), 0, period, TimeUnit.MINUTES);
+        executorService.scheduleAtFixedRate(() -> dDnsService.ddns(new Ipv6AddressRepo()), 0, period, TimeUnit.MINUTES);
     }
 }

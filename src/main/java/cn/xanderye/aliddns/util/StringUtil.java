@@ -8,7 +8,7 @@ package cn.xanderye.aliddns.util;
 public class StringUtil {
 
     public static boolean isEmpty(String s) {
-        return null == s || "".equals(s);
+        return null == s || s.isEmpty();
     }
 
     public static boolean isAnyEmpty(String...args) {
@@ -16,7 +16,20 @@ public class StringUtil {
             return true;
         }
         for (String s : args) {
-            if (null == s || "".equals(s)) {
+            if (null == s || s.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isAllEmpty(String...args) {
+        boolean flag = true;
+        if (args.length == 0) {
+            return flag;
+        }
+        for (String s : args) {
+            if (!isEmpty(s)) {
                 return true;
             }
         }

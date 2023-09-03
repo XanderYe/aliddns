@@ -8,7 +8,7 @@
 ### 1.自己编译
 执行 `docker build -t xanderye/aliddns:1.3 .`
 
-#### 1.1 自己根据本地代码文件编译
+#### 1.1 根据本地代码文件编译(默认是从github拉代码编译)
 执行 `docker build -f Dockerfile-local -t xanderye/aliddns:1.3 .`
 
 ### 2.从dockerhub pull
@@ -22,9 +22,9 @@ docker run -itd \
 -e REGIN_ID=cn-hangzhou \
 -e ACCESS_KEY_ID= \
 -e ACCESS_SECRET= \
--e RR=test \
+-e IPV4_RR=test \
+-e IPV6_RR=test2 \
 -e DOMAIN_NAME=xanderye.cn \
--e TYPE=ipv6 \
 --restart=always \
 --net=host \
 --name aliddns \
@@ -43,12 +43,13 @@ services:
       - REGIN_ID=cn-hangzhou
       - ACCESS_KEY_ID=
       - ACCESS_SECRET=
-      - RR=
+      - IPV4_RR=test
+      - IPV6_RR=test2
       - DOMAIN_NAME=
-      - TYPE=ipv6 #可选ipv4或ipv6,不添加则默认为ipv6
     restart: unless-stopped
 ```
 
 ### 注意事项
 1. 参数需要自己填好、修改好, [如何获取AccessKey](https://help.aliyun.com/knowledge_detail/48699.html)
 2. RR支持多主机记录解析，逗号分隔
+3. IPV4_RR和IPV6_RR可以同时配置,也可以只配置其中一个,只解析配置的
